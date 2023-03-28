@@ -105,6 +105,21 @@
     </div>
   </div>
 
+  <div class="col-sm-6 col-md-4" id="card5">
+    <div class="card">
+      <div class="card-header">
+        COVID-19 Summary Data
+      </div>
+      <div class="card-body">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" placeholder="Search Country" aria-label="Search Country" id="search-input">
+          <button class="btn btn-outline-secondary" type="button" id="search-button">Search</button>
+        </div>
+        <canvas id="pie-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
 
@@ -245,6 +260,72 @@ fetch('https://api.covid19api.com/dayone/country/south-africa/status/confirmed')
       }
     });
   });
+
+
+// Card 5 - Pie Chart with Search Box
+fetch('https://api.covid19api.com/summary')
+    .then(response => response.json())
+    .then(data => {
+      const labels = ['New Confirmed', 'Total Confirmed', 'New Deaths', 'Total Deaths', 'New Recovered', 'Total Recovered'];
+      let values = [data.Global.NewConfirmed, data.Global.TotalConfirmed, data.Global.NewDeaths, data.Global.TotalDeaths, data.Global.NewRecovered, data.Global.TotalRecovered];
+      const ctx = document.getElementById('pie-chart').getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.7)',
+              'rgba(54, 162, 235, 0.7)',
+              'rgba(255, 206, 86, 0.7)',
+              'rgba(75, 192, 192, 0.7)',
+              'rgba(153, 102, 255, 0.7)',
+              'rgba(255, 159, 64, 0.7)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            title: {
+              display: true,
+              text: 'COVID-19 Summary Data'
+            }
+          }
+        }
+      });
+
+      // Add event listener to search button
+      document.getElementById('search-button').addEventListener('click', () => {
+        const searchInput = document.getElementById('search-input').value.toLowerCase();
+        // Filter data by country name
+        const countryData = data.Countries.find(country => country.Country.toLowerCase() === searchInput);
+        if (countryData) {
+          // Update values to show selected country data
+          values = [countryData.NewConfirmed, countryData.TotalConfirmed, countryData.NewDeaths, countryData.TotalDeaths, countryData.NewRecovered, countryData.TotalRecovered];
+          chart.data.datasets[0].data = values;
+          chart.options.plugins.title.text = `${countryData.Country} COVID-19 Summary Data`;
+          chart.update();
+        }
+        else {
+          alert(`No data found for '${searchInput}'`);
+        }
+      });
+    });
+
 </script>
 <footer class="bg-light text-center text-lg-start">
   <div class="container p-4">
